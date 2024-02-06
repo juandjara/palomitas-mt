@@ -1,18 +1,27 @@
-import { type GuessitResponse } from "./getTitleParser"
 import groupBy from "./groupBy"
 import type { MinimalMediaInfo, Torrent } from "./types"
 
-export default function groupByQuality(torrents: (MinimalMediaInfo & GuessitResponse & { torrent: Torrent })[]) {
+type OptionalTvInfo = {
+  season?: number
+  episode?: number | string
+  episode_title?: string
+}
+
+export default function groupByQuality(torrents: (MinimalMediaInfo & OptionalTvInfo & { torrent: Torrent })[]) {
   const grouped = groupBy(torrents, t => t.key)
   return Object.values(grouped).map(group => {
     const { quality, torrent, season, episode, episode_title, key, slug, ...info } = group[0]
     const data = {
-      season, episode, episode_title, key, slug,
+      key,
+      slug,
+      season,
+      episode,
+      episode_title,
       torrents: {
         [quality]: [
           { 
             ...torrent,
-            title_parts: { season, episode, episode_title, key, slug, ...info }
+            title_parts: { key, slug, season, episode, episode_title, ...info }
           }
         ]
       }

@@ -1,16 +1,15 @@
-import wrapAsync from '@/lib/wrapAsync'
 import getTorrentProvider from '@/lib/getTorrentProvider'
 import getMetadataProvider from '@/lib/getMetadataProvider'
 import isValidCategory from '@/lib/isValidCategory'
 import { type ParsedTorrent, ContentCategory, type TorrentMetadata } from "@/lib/types"
 import { type LoaderArgs } from '@remix-run/node'
 import groupByQuality from '@/lib/groupByQuality'
-import getTitleParser from '@/lib/getTitleParser'
+import parseTorrentTitle from '@/lib/parseTorrentTitle'
 
 const DEFAULT_PAGE = 1
 const DEFAULT_RPP = 20
 
-const handler = wrapAsync(async (req: Request, params: Record<string, string | undefined>) => {
+export async function loader({ request, params }: LoaderArgs) {
   const category = params.category
   if (!isValidCategory(category)) {
     const validCategories = [
@@ -21,10 +20,11 @@ const handler = wrapAsync(async (req: Request, params: Record<string, string | u
     throw new Error(`Invalid category found in URL: "${category}". Valid categories are ${validCategories.join(', ')}`)
   }
 
-  const sp = new URL(req.url).searchParams
+  const sp = new URL(request.url).searchParams
   const providerId = sp.get('tp')
   const nogroup = !!sp.get('nogroup')
   const nometa = !!sp.get('nometa')
+  const useGuessit = !!sp.get('guessit')
 
   const torrentProvider = getTorrentProvider(category, providerId)
   const torrents = await torrentProvider.search({
@@ -37,9 +37,11 @@ const handler = wrapAsync(async (req: Request, params: Record<string, string | u
     return torrents
   }
 
-  const titleParser = getTitleParser(category)
-
-  const infos = await Promise.all(torrents.map(t => titleParser(t.title)))
+  const infos = await Promise.all(
+    torrents.map(t => (
+      parseTorrentTitle(t.title, category, useGuessit)
+    ))
+  )
 
   const torrentsWithInfo = torrents
     .map((t, i) => infos[i] && ({ ...infos[i], torrent: t }))
@@ -63,12 +65,6 @@ const handler = wrapAsync(async (req: Request, params: Record<string, string | u
     const data = await metadataProvider.search(g.slug)
     shows[g.slug] = data
   }))
-  // for (const group of groups) {
-  //   const data = await metadataProvider.search(group.slug)
-  //   shows[group.slug] = data
-  // }
-  // const withMeta = groups.map(g => metadataProvider.addMetadata(g))
-  // const results = await Promise.all(withMeta)
 
   return {
     metadataProviderId: metadataProvider.id,
@@ -77,8 +73,4 @@ const handler = wrapAsync(async (req: Request, params: Record<string, string | u
     results: groups,
     metadata: shows
   }
-})
-
-export async function loader({ request, params }: LoaderArgs) {
-  return handler(request, params)
 }
