@@ -1,16 +1,11 @@
 import groupBy from "./groupBy"
-import type { MinimalMediaInfo, Torrent } from "./types"
+import type { MinimalMediaInfo, OptionalTvInfo, Torrent } from "./types"
 
-type OptionalTvInfo = {
-  season?: number
-  episode?: number | string
-  episode_title?: string
-}
-
-export default function groupByQuality(torrents: (MinimalMediaInfo & OptionalTvInfo & { torrent: Torrent })[]) {
-  const grouped = groupBy(torrents, t => t.key)
+export default function groupByQuality(torrents: ({ parts: MinimalMediaInfo & OptionalTvInfo, torrent: Torrent })[]) {
+  const grouped = groupBy(torrents, t => t.parts.key)
   return Object.values(grouped).map(group => {
-    const { quality, torrent, season, episode, episode_title, key, slug, ...info } = group[0]
+    const torrent = group[0].torrent
+    const { quality, season, episode, episode_title, key, slug, ...info } = group[0].parts
     const data = {
       key,
       slug,
@@ -26,12 +21,11 @@ export default function groupByQuality(torrents: (MinimalMediaInfo & OptionalTvI
         ]
       }
     }
-    for (const item of group.slice(1)) {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { quality, torrent, ...item_info } = item
+    for (const { torrent, parts } of group.slice(1)) {
+      const { quality, ...item_info } = parts
       data.torrents[quality] = data.torrents[quality] || []
       data.torrents[quality].push({
-        ...item.torrent,
+        ...torrent,
         title_parts: item_info as any
       })
     }

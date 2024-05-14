@@ -5,7 +5,7 @@ import { type Torrent } from "@/lib/types"
 export default async function searchBitSearch(query = "", page = 1) {
   const torrents = [] as Torrent[]
 
-  const url = `${BITSEARCH_URL}/search?q=${query}&page=${page}&sort=seeders`
+  const url = `${BITSEARCH_URL}/search?q=${query}&page=${page}&sort=seeders&category=1`
   console.log('BitSearch URL:', url)
   const $ = await getDOM(url)
   if (!$) return null

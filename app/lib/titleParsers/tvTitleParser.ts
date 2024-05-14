@@ -1,7 +1,7 @@
 export default function tvTitleParser(title: string) {
   const seasonBased = /(.*).[sS](\d{1,2})[eE](\d{2})(.*)(\d{3,4}p)/i
   const seasonBasedOld = /(.*).(\d{1,2})[x](\d{2})(.*)(\d{3,4}p)/i
-  const dateBased = /(.*).(\d{4}).(\d{2}.\d{2})(.*)(\d{3,4}p)/i
+  const dateBased = /(.*).(\d{4}|\d{2}).(\d{2}.\d{2})(.*)(\d{3,4}p)/i
 
   if (seasonBased.test(title)) {
     const [_, show, season, episode, _other, quality] = title.match(seasonBased)!
@@ -21,7 +21,7 @@ export default function tvTitleParser(title: string) {
 }
 
 function processTitleParts({ regex, show, season, episode, quality }: Record<string, string>) {
-  let slug = show.replace(/[^a-zA-Z0-9 ]/gi, "").replace(/\s+/g, "-").toLowerCase()
+  let slug = show.replace(/[^a-zA-Z0-9. ]/gi, "").replace(/[\s.]+/g, "-").toLowerCase()
   if (slug.endsWith('-')) {
     slug = slug.substring(0, slug.length - 1)
   }

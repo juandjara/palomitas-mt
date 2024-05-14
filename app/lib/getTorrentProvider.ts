@@ -5,10 +5,11 @@ import TVProvider, { TVProviderService } from './torrentProviders/tvProvider'
 
 export const providerMap = new Map<string, AbstactTorrentProvider[]>([
   [ContentCategory.ANIME, [
-    new NyaaProvider({ user: 'Erai-raws', label: 'Erai Raws - eng' }),
-    new NyaaProvider({ user: 'puyero', label: 'PuyaSubs - esp' }),
-    new NyaaProvider({ user: 'Mayansito', label: 'CameEsp - esp' }),
-    new NyaaProvider({ user: 'SubsPlease', label: 'SubsPlease - eng' }),
+    new NyaaProvider({ id: 'cameesp', user: 'Mayansito', label: 'CameEsp - esp' }),
+    new NyaaProvider({ id: 'puyasubs', user: 'puyero', label: 'PuyaSubs - esp' }),
+    new NyaaProvider({ id: 'erairaws', user: 'Erai-raws', label: 'Erai Raws - eng' }),
+    new NyaaProvider({ id: 'subsplease', user: 'SubsPlease', label: 'SubsPlease - eng' }),
+    new TVProvider({ label: 'BitSearch', service: TVProviderService.BITSEARCH }),
   ]],
   [ContentCategory.TV, [
     new TVProvider({ label: 'BitSearch', service: TVProviderService.BITSEARCH }),

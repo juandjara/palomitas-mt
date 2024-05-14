@@ -1,6 +1,6 @@
 import { GUESSIT_URL } from "../env.server"
 import slugFromShow from "../slugFromShow"
-import { ContentCategory, type MinimalMediaInfo } from "../types"
+import { ContentCategory, type OptionalTvInfo, type MinimalMediaInfo } from "../types"
 
 export type GuessitResponse = {
   type: 'episode' | 'movie'
@@ -29,7 +29,10 @@ export type GuessitResponse = {
   subtitle_language?: string
 }
 
-export async function asyncGuessitParser(title: string, category: ContentCategory) {
+export async function asyncGuessitParser(
+  title: string,
+  category: ContentCategory
+): Promise<null | GuessitResponse & MinimalMediaInfo & OptionalTvInfo> {
   const res = await fetch(`${GUESSIT_URL}/?filename=${title}`)
   if (!res.ok) {
     console.error(`Error ${res.status} ${res.statusText} guessit URL for title "${title}"`)
@@ -48,7 +51,9 @@ export async function asyncGuessitParser(title: string, category: ContentCategor
       slug,
       key: slug,
       quality: json.screen_size,
-    } satisfies MinimalMediaInfo
+      episode: undefined,
+      season: undefined,
+    } satisfies GuessitResponse & MinimalMediaInfo & OptionalTvInfo
   }
   if (category !== ContentCategory.MOVIES && json.type === 'movie') {
     console.error(`[getTitleParser] Filtering out type "movie" torrent: "${title}"`)
@@ -56,7 +61,7 @@ export async function asyncGuessitParser(title: string, category: ContentCategor
   }
 
   const isPack = Array.isArray(json.season) || Array.isArray(json.episode)
-  const episode = json.episode || json.episode_title
+  const episode = json.episode || Number(json.episode_title) || undefined
   if (isPack || !episode) {
     console.error(`[getTitleParser] Filtering out torrent that is a pack: "${title}"`)
     return null
@@ -67,6 +72,7 @@ export async function asyncGuessitParser(title: string, category: ContentCategor
     slug,
     key: `${slug}-S${json.season || 1}E${json.episode}`,
     quality: json.screen_size,
-    episode: episode as number | string,
-  } satisfies MinimalMediaInfo & { episode: number | string }
+    episode: episode as number | undefined,
+    season: json.season as number | undefined,
+  } satisfies GuessitResponse & MinimalMediaInfo & OptionalTvInfo
 }

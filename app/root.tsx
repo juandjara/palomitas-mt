@@ -31,7 +31,7 @@ export default function App() {
         <Meta />
         <Links />
       </head>
-      <body>
+      <body className="bg-white dark:bg-slate-900">
         <GlobalSpinner />
         <div className="container mx-auto">
           <Outlet />

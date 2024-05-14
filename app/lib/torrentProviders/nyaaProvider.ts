@@ -5,6 +5,7 @@ import nyaapi from 'nyaapi'
 nyaapi.si.config.updateBaseUrl(NYAA_URL)
 
 type NyaaConfig = {
+  id: string
   user: string
   label: string
 }
@@ -17,7 +18,7 @@ export default class NyaaProvider extends AbstactTorrentProvider<NyaaConfig> {
 
   constructor(config: NyaaConfig) {
     super(config)
-    this.id = `nyaa__${config.user}`
+    this.id = `nyaa__${config.id}`
   }
 
   async search({ page, rpp, query }: ListParams) {
